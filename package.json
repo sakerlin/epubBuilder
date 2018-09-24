@@ -1,0 +1,53 @@
+{
+  "name": "epubbuilder",
+  "version": "1.0.0",
+  "description": "build epub files from txt file",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "splite": "bable-node ./src/splite.js"
+  },
+  "bin": {
+    "splite": "./src/splite.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sakerlin/epubBuilder.git"
+  },
+  "keywords": [
+    "epub",
+    "builder"
+  ],
+  "author": "saker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sakerlin/epubBuilder/issues"
+  },
+  "homepage": "https://github.com/sakerlin/epubBuilder#readme",
+  "dependencies": {
+    "commander": "^2.18.0",
+    "line-reader": "^0.4.0",
+    "standard": "~10.0.2",
+    "child-process-promise": "^2.2.1"
+  },
+  "standard": {
+    "globals": [
+      "Feature",
+      "Scenario",
+      "within",
+      "Before",
+      "After",
+      "jest",
+      "test",
+      "expect",
+      "beforeEach",
+      "beforeAll",
+      "describe",
+      "it"
+    ],
+    "ignore": [
+      "statics/rapid/"
+    ]
+  },
+  "devDependencies": {}
+}
