@@ -4,11 +4,11 @@
   "description": "build epub files from txt file",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "splite": "bable-node ./src/splite.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "splite": "./src/splite.js"
+    "splite": "./src/splite.js",
+    "zipFile": "./src/zipFile.js"
   },
   "repository": {
     "type": "git",

@@ -17,6 +17,7 @@ const deleteEmptyLine = (str) => {
       const patt = /^第(.*)章/
       const result = patt.test(val)
       if (result) {
+        console.log(val)
         val = speperator + '<h3>' + val + '</h3>'
       } else {
         val = '<p>' + val + '</p>'
@@ -86,11 +87,4 @@ exec('rm -rf ./spliteFile/*.xhtml')
 })
 .catch(function (err) {
   console.error('ERROR: ', err)
-})
-
-exec('ls -al ./spliteFile/*.xhtml').then((result) => {
-  let stdout = result.stdout
-  let stderr = result.stderr
-  console.log('ls stdout: ', stdout)
-  console.log('ls stderr: ', stderr)
 })
