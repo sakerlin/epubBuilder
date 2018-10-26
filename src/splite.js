@@ -14,7 +14,8 @@ const deleteEmptyLine = (str) => {
   arr.map((line) => {
     let val = line.trim()
     if (val !== '') {
-      const patt = /^第(.*)章/
+       // const patt = /^第(.*)章/
+      const patt = /^第(.{1,5})章/
       const result = patt.test(val)
       if (result) {
         console.log(val)
@@ -40,6 +41,7 @@ exec('rm -rf ./spliteFile/*.xhtml')
     // 從參數讀入檔名
     const file = `${process.cwd()}/${program.args}`
     let filename = `${program.args}`.split('.')
+    console.log(filename)
     const prefix = filename[0]
     if (fs.existsSync(file)) {
       // 讀取原始文字檔
