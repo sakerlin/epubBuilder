@@ -15,11 +15,19 @@ const deleteEmptyLine = (str) => {
     let val = line.trim()
     if (val !== '') {
        // const patt = /^第(.*)章/
+      const volpatt = /^第(.{1,5})集/
+      const volresult = volpatt.test(val)
       const patt = /^第(.{1,5})章/
-      const result = patt.test(val)
+      // const patt = /^章(.{1,5})/
+      const result = patt.test(val) || val.includes('序章') || val.includes('內容簡介')
+
+      // const result = patt.test(val) && !val.includes('章若水') && !val.includes('章若雲')
       if (result) {
         console.log(val)
         val = speperator + '<h3>' + val + '</h3>'
+      } else if (volresult) {
+        console.log(val)
+        val = speperator + '<h2>' + val + '</h2>'
       } else {
         val = '<p>' + val + '</p>'
       }
@@ -74,11 +82,13 @@ exec('rm -rf ./spliteFile/*.xhtml')
                       chapter + '</div>' + '\n' +
                       '</body>' + '\n' +
                       '</html>'
-            fs.writeFile(ouputFileName, mchapter, function (err) {
-              if (err) {
-                console.log(err)
-              }
-            })
+            if (chapter) {
+              fs.writeFile(ouputFileName, mchapter, function (err) {
+                if (err) {
+                  console.log(err)
+                }
+              })
+            }
           })
         }
       })
