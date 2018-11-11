@@ -19,7 +19,7 @@ const deleteEmptyLine = (str) => {
       const volresult = volpatt.test(val)
       const patt = /^第(.{1,5})章/
       // const patt = /^章(.{1,5})/
-      const result = patt.test(val) || val.includes('序章') || val.includes('內容簡介')
+      const result = patt.test(val) || /^序章/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
 
       // const result = patt.test(val) && !val.includes('章若水') && !val.includes('章若雲')
       if (result) {
