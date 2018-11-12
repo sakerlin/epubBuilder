@@ -5,7 +5,7 @@ const fs = require('fs')
 const exec = require('child-process-promise').exec
 const speperator = 'TTTTTTT'
 // http://www.skylerzhang.com/node/2015/01/08/commandline/
-program.version('0.0.1').usage('<keywords>').parse(process.argv)
+program.version('0.0.1').usage('<fileName>').parse(process.argv)
 
 // 刪除空白行 並加入分隔符號
 const deleteEmptyLine = (str) => {
@@ -14,12 +14,11 @@ const deleteEmptyLine = (str) => {
   arr.map((line) => {
     let val = line.trim()
     if (val !== '') {
-       // const patt = /^第(.*)章/
       const volpatt = /^第(.{1,5})集/
       const volresult = volpatt.test(val)
       const patt = /^第(.{1,5})章/
-      // const patt = /^章(.{1,5})/
-      const result = patt.test(val) || /^序章/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
+      const pattb = /^章(.{1,5})/
+      const result = pattb.test(val) || patt.test(val) || /^引子/.test(val) || /^序章/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
 
       // const result = patt.test(val) && !val.includes('章若水') && !val.includes('章若雲')
       if (result) {

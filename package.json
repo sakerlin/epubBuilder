@@ -8,7 +8,8 @@
   },
   "bin": {
     "splite": "./src/splite.js",
-    "zipFile": "./src/zipFile.js"
+    "zipFile": "./src/zipFile.js",
+    "convFile": "./src/convFile.js"
   },
   "repository": {
     "type": "git",
@@ -25,10 +26,13 @@
   },
   "homepage": "https://github.com/sakerlin/epubBuilder#readme",
   "dependencies": {
+    "chardet": "^0.7.0",
+    "child-process-promise": "^2.2.1",
+    "chinese-conv": "^1.0.1",
     "commander": "^2.18.0",
+    "iconv-lite": "^0.4.24",
     "line-reader": "^0.4.0",
-    "standard": "~10.0.2",
-    "child-process-promise": "^2.2.1"
+    "standard": "~10.0.2"
   },
   "standard": {
     "globals": [
