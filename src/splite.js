@@ -14,11 +14,27 @@ const deleteEmptyLine = (str) => {
   arr.map((line) => {
     let val = line.trim()
     if (val !== '') {
-      const volpatt = /^第(.{1,5})集/
-      const volresult = volpatt.test(val)
-      const patt = /^第(.{1,5})章/
-      const pattb = /^章(.{1,5})/
-      const result = pattb.test(val) || patt.test(val) || /^引子/.test(val) || /^序章/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
+      const volpatt = /^第[零一二三四五六七八九十百千]{1,7}[集卷]/
+      const volpatt2 = /^[上下]半篇{1,12}(.*)$/
+      const volresult = volpatt.test(val) || volpatt2.test(val)
+
+      // const patt = /^第(.{1,5})章/
+      const pattb = /^章(.{1,5})$/
+      // ^\[更新時間\](.{1,40})$
+      // 【第(.*)更】
+      // ^\s*$          #空行
+      // const pattc = /^第(.{1,5})節/
+      /*
+      "第[零一二三四五六七八九十百千]{1,7}[章集回捲篇][:：]?.*",
+      "第\\d{1,7}[章集回捲篇][:：]?.*",
+      "[零一二三四五六七八九十百千]{1,7}.*",
+      "\\d{1,7}.*",
+      ".* +第[零一二三四五六七八九十百千]{1,7}[章集回捲篇][:：]?.*",
+      ".* +第\\d{1,7}[章集回捲篇][:：]?.*"
+      */
+      const pattc = /^第\d{1,4}[章節]/
+      const patt = /^第[零一二兩三四五六七八九十百千]{1,7}[章節]/
+      const result = pattc.test(val) || pattb.test(val) || patt.test(val) || /^引子/.test(val) || /^序章/.test(val) || /^序幕/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
 
       // const result = patt.test(val) && !val.includes('章若水') && !val.includes('章若雲')
       if (result) {
