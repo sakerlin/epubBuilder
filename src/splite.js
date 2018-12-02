@@ -14,9 +14,10 @@ const deleteEmptyLine = (str) => {
   arr.map((line) => {
     let val = line.trim()
     if (val !== '') {
-      const volpatt = /^第[零一二三四五六七八九十百千]{1,7}[集卷]/
+      const volpatt = /^第[零一二三四五六七八九十百千]{1,7}[集卷冊]/
+      const volpatt1 = /^第\d{1,4}[集卷冊]/
       const volpatt2 = /^[上下]半篇{1,12}(.*)$/
-      const volresult = volpatt.test(val) || volpatt2.test(val)
+      const volresult = volpatt1.test(val) || volpatt.test(val) || volpatt2.test(val)
 
       // const patt = /^第(.{1,5})章/
       const pattb = /^章(.{1,5})$/
