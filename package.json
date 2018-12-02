@@ -9,7 +9,10 @@
   "bin": {
     "splite": "./src/splite.js",
     "zipFile": "./src/zipFile.js",
-    "convFile": "./src/convFile.js"
+    "convFile": "./src/convFile.js",
+    "mdconver": "./src/mdconver.js",
+    "mergetxt": "./src/merge.js",
+    "preformat": "./src/preformat.js"
   },
   "repository": {
     "type": "git",
