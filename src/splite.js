@@ -17,10 +17,11 @@ const deleteEmptyLine = (str) => {
       const volpatt = /^第[零一二三四五六七八九十百千]{1,7}[集卷冊]/
       const volpatt1 = /^第\d{1,4}[集卷冊]/
       const volpatt2 = /^[上下]半篇{1,12}(.*)$/
-      const volresult = volpatt1.test(val) || volpatt.test(val) || volpatt2.test(val)
-
+      const volpatt3 = /^卷(.{1,12})$/
+      const volresult = volpatt1.test(val) || volpatt.test(val) || volpatt2.test(val) || volpatt3.test(val)
+      // 更新時間:(.*) 本章字數:\d{1,4}
       // const patt = /^第(.{1,5})章/
-      const pattb = /^章(.{1,5})$/
+      const pattb = /^章(.{1,20})$/
       // ^\[更新時間\](.{1,40})$
       // 【第(.*)更】
       // ^\s*$          #空行
@@ -35,7 +36,7 @@ const deleteEmptyLine = (str) => {
       */
       const pattc = /^第\d{1,4}[章節]/
       const patt = /^第[零一二兩三四五六七八九十百千]{1,7}[章節]/
-      const result = pattc.test(val) || pattb.test(val) || patt.test(val) || /^引子/.test(val) || /^序章/.test(val) || /^序幕/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
+      const result = pattc.test(val) || pattb.test(val) || patt.test(val) || /^引子/.test(val) || /^序章/.test(val) || /^序幕/.test(val) || val.includes('內容簡介') || /^尾聲/.test(val) || /^終章/.test(val) || /^完本感言/.test(val)
 
       // const result = patt.test(val) && !val.includes('章若水') && !val.includes('章若雲')
       if (result) {
