@@ -12,7 +12,8 @@
     "convFile": "./src/convFile.js",
     "mdconver": "./src/mdconver.js",
     "mergetxt": "./src/merge.js",
-    "preformat": "./src/preformat.js"
+    "preformat": "./src/preformat.js",
+    "renameDir": "./src/renameDir.js"
   },
   "repository": {
     "type": "git",
@@ -35,7 +36,7 @@
     "commander": "^2.18.0",
     "iconv-lite": "^0.4.24",
     "line-reader": "^0.4.0",
-    "standard": "~10.0.2"
+    "standard": "^12.0.1"
   },
   "standard": {
     "globals": [
