@@ -18,7 +18,14 @@ splite [filename]
 ```
 convFile [filename]
 ```
-
+## 簡體 轉 繁體 utf8
+```
+s2t [filename]
+```
+# 清除 exp
+```
+^（PS?.*）$
+```
 # build epub use Sigil
 ## Add files
  
