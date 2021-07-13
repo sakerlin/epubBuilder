@@ -13,7 +13,8 @@
     "mdconver": "./src/mdconver.js",
     "mergetxt": "./src/merge.js",
     "preformat": "./src/preformat.js",
-    "renameDir": "./src/renameDir.js"
+    "renameDir": "./src/renameDir.js",
+    "s2t": "./src/s2t.js"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,7 @@
     "iconv-lite": "^0.4.24",
     "line-reader": "^0.4.0",
     "minimist": "1.2.5",
+    "opencc": "^1.1.2",
     "standard": "^14.3.3"
   },
   "standard": {
