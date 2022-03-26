@@ -37,7 +37,7 @@
     "commander": "^2.18.0",
     "iconv-lite": "^0.4.24",
     "line-reader": "^0.4.0",
-    "minimist": "1.2.5",
+    "minimist": "1.2.6",
     "opencc": "^1.1.2",
     "standard": "^14.3.3"
   },
