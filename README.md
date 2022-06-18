@@ -32,7 +32,7 @@ s2t [filename]
 開新專案 -> file -> Add -> Existing files -> [open spliteFile folder select all file]
  
 ## 建立目錄
-Tools->Table of contents-> Create Html table of contents
+Tools->Table of contents-> Generate table of contents
 ## 新增封面
 Tools->Add cover-> other files -> select cover image
 
