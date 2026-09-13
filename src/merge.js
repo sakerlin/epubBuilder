@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 const program = require('commander')
 const fs = require('fs')
-// const { exec } = require('child_process') // 載入 child_process 模組
-const exec = require('child-process-promise').exec
+const { rmFiles } = require('./lib/fs-utils')
 const speperator = 'TTTTTTT'
 // http://www.skylerzhang.com/node/2015/01/08/commandline/
 program.version('0.0.1').usage('<fileName>').parse(process.argv)
@@ -37,61 +36,30 @@ const preProccessFnc = (str) => {
   return newArr.join('\n') // 重组
 }
 
-exec('rm -rf ./spliteFile/*.xhtml')
-.then((result) => {
-  let stdout = result.stdout
-  let stderr = result.stderr
-  console.log('stdout: ', stdout)
-  console.log('stderr: ', stderr)
-  if (!program.args.length) {
-    program.help()
-  } else {
+rmFiles('./spliteFile', (name) => name.endsWith('.xhtml'))
 
-    let subdirs = fs.readdirSync('./pm')
-    let newArr = subdirs.map((fns) => {
-      return parseInt(fns, 10)
+if (!program.args.length) {
+  program.help()
+} else {
+  let subdirs = fs.readdirSync('./pm')
+  let newArr = subdirs.map((fns) => {
+    return parseInt(fns, 10)
+  })
+  newArr.sort((a, b) => { return a - b })
+  newArr.map((subdir) => {
+    const sub = './pm/' + subdir
+    const txtfiles = fs.readdirSync(sub)
+
+    txtfiles.sort((a, b) => {
+      const na = parseInt(a.replace('.txt', ''), 10)
+      const nb = parseInt(b.replace('.txt', ''), 10)
+      return na - nb
     })
-    newArr.sort((a, b) => { return a - b })
-    newArr.map((subdir) => {
-      const sub = './pm/' + subdir
-      const txtfiles = fs.readdirSync(sub)
-
-      txtfiles.sort((a, b) => {
-        const na = parseInt(a.replace('.txt', ''), 10)
-        const nb = parseInt(b.replace('.txt', ''), 10)
-        return na - nb
-      })
-      txtfiles.map((txtfile) => {
-        console.log(sub + '/' + txtfile)
-        let data = fs.readFileSync(sub + '/' + txtfile, 'utf8')
-        const pdata = preProccessFnc(data)
-        fs.appendFileSync('./pms.txt', pdata)
-      })
+    txtfiles.map((txtfile) => {
+      console.log(sub + '/' + txtfile)
+      let data = fs.readFileSync(sub + '/' + txtfile, 'utf8')
+      const pdata = preProccessFnc(data)
+      fs.appendFileSync('./pms.txt', pdata)
     })
-
-    // fs.readdir('./pm', (err, files) => {
-    //   if(err) {
-    //      console.error(err)
-    //      return
-    //    } else {
-    //
-    //
-    //      newArr.map((dir) => {
-    //          const subdir = './pm/' + dir
-    //          console.log(subdir)
-    //          fs.readdir(subdir, (err, files) => {
-
-    //            console.log(files)
-    //            files.map((txtfile) => {
-
-    //            })
-    //          })
-    //      })
-    //    }
-    // })
-
-  }
-})
-.catch(function (err) {
-  console.error('ERROR: ', err)
-})
+  })
+}

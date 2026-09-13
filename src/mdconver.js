@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 const program = require('commander')
 const fs = require('fs')
-// const { exec } = require('child_process') // 載入 child_process 模組
-const exec = require('child-process-promise').exec
+const { rmFiles } = require('./lib/fs-utils')
 const speperator = 'TTTTTTT'
 // http://www.skylerzhang.com/node/2015/01/08/commandline/
 program.version('0.0.1').usage('<fileName>').parse(process.argv)
@@ -37,41 +36,32 @@ const preProccessFnc = (str) => {
   return newArr.join('\n') // 重组
 }
 
-exec('rm -rf ./spliteFile/*.xhtml')
-.then((result) => {
-  let stdout = result.stdout
-  let stderr = result.stderr
-  console.log('stdout: ', stdout)
-  console.log('stderr: ', stderr)
-  if (!program.args.length) {
-    program.help()
-  } else {
-    // 從參數讀入檔名
-    const file = `${process.cwd()}/${program.args}`
-    let filename = `${program.args}`.split('.')
-    const ouputFileName = './' + filename[0] + '_MD.txt'
+rmFiles('./spliteFile', (name) => name.endsWith('.xhtml'))
 
-    if (fs.existsSync(file)) {
-      // 讀取原始文字檔
-      fs.readFile(file, 'utf8', function (err, data) {
-        if (!err) {
-          // 預處理
-          const preProccess = preProccessFnc(data)
-          if (preProccess) {
-            fs.writeFile(ouputFileName, preProccess, function (err) {
-              if (err) {
-                console.log(err)
-              }
-            })
-          }
+if (!program.args.length) {
+  program.help()
+} else {
+  // 從參數讀入檔名
+  const file = `${process.cwd()}/${program.args}`
+  let filename = `${program.args}`.split('.')
+  const ouputFileName = './' + filename[0] + '_MD.txt'
 
+  if (fs.existsSync(file)) {
+    // 讀取原始文字檔
+    fs.readFile(file, 'utf8', function (err, data) {
+      if (!err) {
+        // 預處理
+        const preProccess = preProccessFnc(data)
+        if (preProccess) {
+          fs.writeFile(ouputFileName, preProccess, function (err) {
+            if (err) {
+              console.log(err)
+            }
+          })
         }
-      })
-    } else {
-      console.log('File not exist!!!')
-    }
+      }
+    })
+  } else {
+    console.log('File not exist!!!')
   }
-})
-.catch(function (err) {
-  console.error('ERROR: ', err)
-})
+}
