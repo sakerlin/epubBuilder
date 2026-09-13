@@ -2,6 +2,12 @@
 const program = require('commander')
 const fs = require('fs')
 const { rmFile } = require('./lib/fs-utils')
+const {
+  requireInputFile,
+  outputBeside,
+  exitIfMissing
+} = require('./lib/cli-utils')
+
 const speperator = 'TTTTTTT'
 // http://www.skylerzhang.com/node/2015/01/08/commandline/
 program.version('0.0.1').usage('<fileName>').parse(process.argv)
@@ -41,29 +47,29 @@ const preProccessFnc = (str) => {
 
 if (!program.args.length) {
   program.help()
-} else {
-  const file = `${process.cwd()}/${program.args}`
-  let filename = `${program.args}`.split('.')
-  const ouputFileName = './' + filename[0] + '_formated.txt'
-
-  rmFile(ouputFileName)
-
-  if (fs.existsSync(file)) {
-    // 讀取原始文字檔
-    fs.readFile(file, 'utf8', function (err, data) {
-      if (!err) {
-        // 預處理
-        const preProccess = preProccessFnc(data)
-        if (preProccess) {
-          fs.writeFile(ouputFileName, preProccess, function (err) {
-            if (err) {
-              console.log(err)
-            }
-          })
-        }
-      }
-    })
-  } else {
-    console.log('File not exist!!!')
-  }
 }
+
+const file = requireInputFile(program)
+exitIfMissing(file)
+
+const ouputFileName = outputBeside(file, '_formated.txt')
+rmFile(ouputFileName)
+
+fs.readFile(file, 'utf8', function (err, data) {
+  if (err) {
+    console.error(err)
+    process.exitCode = 1
+    return
+  }
+  const preProccess = preProccessFnc(data)
+  if (preProccess) {
+    fs.writeFile(ouputFileName, preProccess, function (writeErr) {
+      if (writeErr) {
+        console.error(writeErr)
+        process.exitCode = 1
+        return
+      }
+      console.log('wrote', ouputFileName)
+    })
+  }
+})

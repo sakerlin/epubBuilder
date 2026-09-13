@@ -6,31 +6,49 @@ builder epub file from text file
 npm install
 npm link
 ```
+
+路徑可用相對或絕對路徑；輸出檔會寫在**輸入檔同一目錄**（`splite` 的 xhtml 則固定寫到 cwd 下的 `spliteFile/`，檔名只用 basename，避免子目錄路徑炸開）。
+
 ## 預先處理
 ```
 preformat [filename]
 ```
+產生 `<stem>_formated.txt`（與輸入檔同目錄）。
+
 ## 分割檔案
 ```
 splite [filename]
 ```
+清空並寫入 `./spliteFile/<stem>_N.xhtml`（自動建立目錄）。
+
 ## gbk 轉 繁體 utf8
 ```
 convFile [filename]
 ```
+偵測為 GBK / GB2312 / GB18030 時解碼並轉繁體，輸出 `<stem>_CHT.txt`。
+
 ## 簡體 轉 繁體 utf8
 ```
 s2t [filename]
 ```
+輸出 `<stem>_S2T.txt`。
+
+## 打包 spliteFile（可選）
+```
+zipFile
+```
+需要系統有 Info-Zip 的 `zip` 命令（macOS/Linux 常見）。Windows 若沒有 `zip`，請手動壓縮 `spliteFile` 資料夾。
+
 # 清除 exp
 ```
 ^（PS?.*）$
 ```
+
 # build epub use Sigil
 ## Add files
- 
+
 開新專案 -> file -> Add -> Existing files -> [open spliteFile folder select all file]
- 
+
 ## 建立目錄
 Tools->Table of contents-> Generate table of contents
 ## 新增封面
