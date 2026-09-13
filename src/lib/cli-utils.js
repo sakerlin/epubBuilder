@@ -2,26 +2,30 @@
 
 const fs = require('fs')
 const path = require('path')
+const { Command } = require('commander')
 
 /**
- * Resolve the first CLI file argument to an absolute path.
- * Commander v2 puts positionals in program.args (array).
- * @param {import('commander').Command | { args: string[] }} program
- * @returns {string} absolute path
+ * Parse a single required file argument (Commander v12+).
+ * @param {string} name CLI name
+ * @param {string} [version]
+ * @returns {{ program: import('commander').Command, inputFile: string }}
  */
-function requireInputFile (program) {
-  const raw = program.args && program.args[0]
-  if (!raw || String(raw).trim() === '') {
-    if (typeof program.help === 'function') program.help()
-    console.error('Missing input file path.')
-    process.exit(1)
-  }
-  return path.resolve(process.cwd(), String(raw))
+function parseFileProgram (name, version = '0.0.1') {
+  const program = new Command()
+  program
+    .name(name)
+    .version(version)
+    .argument('<fileName>', 'input text file path')
+    .showHelpAfterError()
+    .parse(process.argv)
+
+  const raw = program.args[0]
+  const inputFile = path.resolve(process.cwd(), String(raw))
+  return { program, inputFile }
 }
 
 /**
  * Output path beside the input file: `<dir>/<stem><suffix>`
- * e.g. input /books/a.txt + '_formated.txt' → /books/a_formated.txt
  */
 function outputBeside (inputFile, suffix) {
   const dir = path.dirname(inputFile)
@@ -29,7 +33,7 @@ function outputBeside (inputFile, suffix) {
   return path.join(dir, stem + suffix)
 }
 
-/** Basename stem only (no directories) — safe for spliteFile output names. */
+/** Basename stem only — safe for spliteFile output names. */
 function inputStem (inputFile) {
   return path.parse(inputFile).name
 }
@@ -45,7 +49,19 @@ function exitIfMissing (file) {
   }
 }
 
+/** @deprecated use parseFileProgram */
+function requireInputFile (program) {
+  const raw = program.args && program.args[0]
+  if (!raw || String(raw).trim() === '') {
+    if (typeof program.help === 'function') program.help()
+    console.error('Missing input file path.')
+    process.exit(1)
+  }
+  return path.resolve(process.cwd(), String(raw))
+}
+
 module.exports = {
+  parseFileProgram,
   requireInputFile,
   outputBeside,
   inputStem,
