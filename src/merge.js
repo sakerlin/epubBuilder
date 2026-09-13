@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 const program = require('commander')
 const fs = require('fs')
+const path = require('path')
 const { rmFiles } = require('./lib/fs-utils')
+const { ensureDir } = require('./lib/cli-utils')
+
 const speperator = 'TTTTTTT'
+const SPLITE_DIR = path.join(process.cwd(), 'spliteFile')
 // http://www.skylerzhang.com/node/2015/01/08/commandline/
 program.version('0.0.1').usage('<fileName>').parse(process.argv)
 
@@ -36,30 +40,40 @@ const preProccessFnc = (str) => {
   return newArr.join('\n') // 重组
 }
 
-rmFiles('./spliteFile', (name) => name.endsWith('.xhtml'))
-
 if (!program.args.length) {
   program.help()
-} else {
-  let subdirs = fs.readdirSync('./pm')
-  let newArr = subdirs.map((fns) => {
-    return parseInt(fns, 10)
-  })
-  newArr.sort((a, b) => { return a - b })
-  newArr.map((subdir) => {
-    const sub = './pm/' + subdir
-    const txtfiles = fs.readdirSync(sub)
-
-    txtfiles.sort((a, b) => {
-      const na = parseInt(a.replace('.txt', ''), 10)
-      const nb = parseInt(b.replace('.txt', ''), 10)
-      return na - nb
-    })
-    txtfiles.map((txtfile) => {
-      console.log(sub + '/' + txtfile)
-      let data = fs.readFileSync(sub + '/' + txtfile, 'utf8')
-      const pdata = preProccessFnc(data)
-      fs.appendFileSync('./pms.txt', pdata)
-    })
-  })
 }
+
+ensureDir(SPLITE_DIR)
+rmFiles(SPLITE_DIR, (name) => name.endsWith('.xhtml'))
+
+const pmDir = path.join(process.cwd(), 'pm')
+if (!fs.existsSync(pmDir)) {
+  console.error('Directory not exist: ' + pmDir)
+  process.exit(1)
+}
+
+let subdirs = fs.readdirSync(pmDir)
+let newArr = subdirs.map((fns) => {
+  return parseInt(fns, 10)
+})
+newArr.sort((a, b) => { return a - b })
+newArr.forEach((subdir) => {
+  if (Number.isNaN(subdir)) return
+  const sub = path.join(pmDir, String(subdir))
+  if (!fs.statSync(sub).isDirectory()) return
+  const txtfiles = fs.readdirSync(sub)
+
+  txtfiles.sort((a, b) => {
+    const na = parseInt(a.replace('.txt', ''), 10)
+    const nb = parseInt(b.replace('.txt', ''), 10)
+    return na - nb
+  })
+  txtfiles.forEach((txtfile) => {
+    const full = path.join(sub, txtfile)
+    console.log(full)
+    let data = fs.readFileSync(full, 'utf8')
+    const pdata = preProccessFnc(data)
+    fs.appendFileSync(path.join(process.cwd(), 'pms.txt'), pdata)
+  })
+})

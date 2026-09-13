@@ -1,4 +1,10 @@
 spliteFile/
+spliteFile.zip
+*_formated.txt
+*_MD.txt
+*_CHT.txt
+*_S2T.txt
+pms.txt
 artifacts/
 coverage/
 dist/

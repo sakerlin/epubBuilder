@@ -1,8 +1,17 @@
 #!/usr/bin/env node
 const program = require('commander')
 const fs = require('fs')
+const path = require('path')
 const { rmFiles } = require('./lib/fs-utils')
+const {
+  requireInputFile,
+  outputBeside,
+  ensureDir,
+  exitIfMissing
+} = require('./lib/cli-utils')
+
 const speperator = 'TTTTTTT'
+const SPLITE_DIR = path.join(process.cwd(), 'spliteFile')
 // http://www.skylerzhang.com/node/2015/01/08/commandline/
 program.version('0.0.1').usage('<fileName>').parse(process.argv)
 
@@ -36,32 +45,33 @@ const preProccessFnc = (str) => {
   return newArr.join('\n') // 重组
 }
 
-rmFiles('./spliteFile', (name) => name.endsWith('.xhtml'))
-
 if (!program.args.length) {
   program.help()
-} else {
-  // 從參數讀入檔名
-  const file = `${process.cwd()}/${program.args}`
-  let filename = `${program.args}`.split('.')
-  const ouputFileName = './' + filename[0] + '_MD.txt'
-
-  if (fs.existsSync(file)) {
-    // 讀取原始文字檔
-    fs.readFile(file, 'utf8', function (err, data) {
-      if (!err) {
-        // 預處理
-        const preProccess = preProccessFnc(data)
-        if (preProccess) {
-          fs.writeFile(ouputFileName, preProccess, function (err) {
-            if (err) {
-              console.log(err)
-            }
-          })
-        }
-      }
-    })
-  } else {
-    console.log('File not exist!!!')
-  }
 }
+
+const file = requireInputFile(program)
+exitIfMissing(file)
+
+ensureDir(SPLITE_DIR)
+rmFiles(SPLITE_DIR, (name) => name.endsWith('.xhtml'))
+
+const ouputFileName = outputBeside(file, '_MD.txt')
+
+fs.readFile(file, 'utf8', function (err, data) {
+  if (err) {
+    console.error(err)
+    process.exitCode = 1
+    return
+  }
+  const preProccess = preProccessFnc(data)
+  if (preProccess) {
+    fs.writeFile(ouputFileName, preProccess, function (writeErr) {
+      if (writeErr) {
+        console.error(writeErr)
+        process.exitCode = 1
+        return
+      }
+      console.log('wrote', ouputFileName)
+    })
+  }
+})
