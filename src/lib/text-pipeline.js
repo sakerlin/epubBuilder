@@ -3,6 +3,18 @@
 const { classifyLine } = require('./chapter-rules')
 
 /**
+ * Light title spacing tidy — keep a single space after 引子 / 第N篇 markers.
+ * Avoid nuking all whitespace (that broke "引子 開篇" → "引子開篇").
+ */
+function tidyTitle (val) {
+  let s = val.replace(/\s+/g, ' ').trim()
+  // "第N章" glued forms are fine; ensure readable spaces after 篇/卷 markers when followed by more text
+  s = s.replace(/(第[零一二三四五六七八九十百千两兩\d]{1,8}[篇章卷集冊])(?=\S)/g, '$1 ')
+  s = s.replace(/\s+/g, ' ').trim()
+  return s
+}
+
+/**
  * Normalize blank lines and optionally tidy volume/chapter title spacing.
  * @param {string} text
  * @param {ReturnType<import('./chapter-rules').loadRules>} rules
@@ -16,15 +28,7 @@ function preformatText (text, rules, opts = {}) {
     if (!val) continue
     const kind = classifyLine(val, rules)
     if (tidyTitles && (kind === 'volume' || kind === 'chapter')) {
-      val = val.replace(/\s+/g, '')
-      val = val
-        .replace('集', '集 ')
-        .replace('卷', '卷 ')
-        .replace('冊', '冊 ')
-        .replace('篇', '篇 ')
-        .replace('章', '章 ')
-        .replace('節', '節 ')
-        .trim()
+      val = tidyTitle(val)
     }
     out.push(val)
   }
@@ -65,6 +69,7 @@ function splitIntoChapters (text, rules) {
       continue
     }
     if (!current) {
+      // Book title lines before first heading → attach later or keep as front matter chapter
       start(2, '正文')
     }
     current.paragraphs.push(val)
@@ -74,10 +79,14 @@ function splitIntoChapters (text, rules) {
     start(2, '正文')
   }
 
+  // Drop empty leading "正文" placeholder if a real heading follows with all content moved...
+  // Actually leading 正文 only holds pre-heading lines (e.g. 《人途》); keep it.
+
   return chapters
 }
 
 module.exports = {
   preformatText,
-  splitIntoChapters
+  splitIntoChapters,
+  tidyTitle
 }
