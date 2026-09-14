@@ -1,20 +1,15 @@
 #!/usr/bin/env node
+'use strict'
+
 const OpenCC = require('opencc-js')
-const program = require('commander')
 const fs = require('fs')
 const {
-  requireInputFile,
+  parseFileProgram,
   outputBeside,
   exitIfMissing
 } = require('./lib/cli-utils')
 
-program.version('0.0.1').usage('<fileName>').parse(process.argv)
-
-if (!program.args.length) {
-  program.help()
-}
-
-const file = requireInputFile(program)
+const { inputFile: file } = parseFileProgram('s2t')
 exitIfMissing(file)
 
 const ouputFileName = outputBeside(file, '_S2T.txt')
@@ -26,7 +21,6 @@ fs.readFile(file, function (err, data) {
     return
   }
 
-  // Simplified (cn) -> Traditional (tw)
   const converter = OpenCC.Converter({ from: 'cn', to: 'tw' })
   const converted = converter(data.toString('utf8'))
 
