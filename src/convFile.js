@@ -1,52 +1,56 @@
 #!/usr/bin/env node
-const { tify } = require('chinese-conv')
-const program = require('commander')
+'use strict'
+
+const OpenCC = require('opencc-js')
 const fs = require('fs')
 const chardet = require('chardet')
 const iconv = require('iconv-lite')
 const {
-  requireInputFile,
+  parseFileProgram,
   outputBeside,
   exitIfMissing
 } = require('./lib/cli-utils')
 
-program.version('0.0.1').usage('<fileName>').parse(process.argv)
-
-if (!program.args.length) {
-  program.help()
-}
-
-const file = requireInputFile(program)
+const { inputFile: file } = parseFileProgram('convFile')
 exitIfMissing(file)
 
-const detected = chardet.detectFileSync(file)
-const isGBK = detected === 'GB18030' || detected === 'GBK' || detected === 'GB2312'
-const ouputFileName = outputBeside(file, '_CHT.txt')
+function resolveGbEncoding (buf) {
+  const analysed = typeof chardet.analyse === 'function' ? chardet.analyse(buf) : []
+  const hit = (analysed || []).find((m) => {
+    const name = String((m && (m.name || m.encoding)) || '').toUpperCase()
+    return name === 'GB18030' || name === 'GBK' || name === 'GB2312'
+  })
+  if (hit) return String(hit.name || hit.encoding).toUpperCase()
 
-if (!isGBK) {
-  console.log(file + ' is not a GBK/GB18030 encoded file (detected: ' + detected + ')')
-  process.exitCode = 1
-  process.exit(1)
+  const detected = chardet.detect(buf)
+  const enc = typeof detected === 'string' ? detected : (detected && detected.encoding)
+  if (enc) {
+    const u = String(enc).toUpperCase()
+    if (u === 'GB18030' || u === 'GBK' || u === 'GB2312') return u
+  }
+  return null
 }
 
-fs.readFile(file, function (err, data) {
-  if (err) {
-    console.error(err)
-    process.exitCode = 1
-    return
-  }
-  // gbk / gb18030 才轉
-  data = iconv.decode(data, 'gbk')
-  console.log('decode gbk (detected:', detected + ')')
+const raw = fs.readFileSync(file)
+const encoding = resolveGbEncoding(raw)
+const ouputFileName = outputBeside(file, '_CHT.txt')
 
-  let u8 = data.toString('utf8')
-  const text = tify(u8)
-  fs.writeFile(ouputFileName, text, function (writeErr) {
-    if (writeErr) {
-      console.error(writeErr)
-      process.exitCode = 1
-      return
-    }
-    console.log('wrote', ouputFileName)
-  })
-})
+if (!encoding) {
+  // Short files often mis-detect; allow explicit override later. For now try GBK if high byte density.
+  const high = raw.filter((b) => b >= 0x80).length
+  const ratio = raw.length ? high / raw.length : 0
+  if (ratio < 0.1) {
+    console.error(file + ' is not a GBK/GB18030 encoded file (chardet found no GB* match)')
+    process.exit(1)
+  }
+  console.warn('chardet did not report GB*; falling back to GBK decode (high-byte ratio ' + ratio.toFixed(2) + ')')
+}
+
+const decoded = iconv.decode(raw, 'gbk')
+console.log('decode gbk (detected: ' + (encoding || 'fallback-GBK') + ')')
+
+const converter = OpenCC.Converter({ from: 'cn', to: 'tw' })
+const text = converter(decoded)
+
+fs.writeFileSync(ouputFileName, text)
+console.log('wrote', ouputFileName)

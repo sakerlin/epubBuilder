@@ -1,6 +1,9 @@
 # epubBuilder
 builder epub file from text file
 
+## Requirements
+- Node.js **>= 18**
+
 ## install
 ```
 npm install
@@ -8,6 +11,8 @@ npm link
 ```
 
 路徑可用相對或絕對路徑；輸出檔會寫在**輸入檔同一目錄**（`splite` 的 xhtml 則固定寫到 cwd 下的 `spliteFile/`，檔名只用 basename，避免子目錄路徑炸開）。
+
+簡繁轉換統一使用 **opencc-js**（`s2t` / `convFile`）。`convFile` 會偵測 GBK/GB2312/GB18030。
 
 ## 預先處理
 ```
