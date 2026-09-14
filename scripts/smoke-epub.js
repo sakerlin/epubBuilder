@@ -12,11 +12,14 @@ const txt = path.join(tmp, 'novel.txt')
 const epub = path.join(tmp, 'novel.epub')
 
 const body = [
-  '第一卷 起源',
-  '這是卷首。',
-  '第一章 開始',
-  '這是第一段。',
-  '這是第二段。',
+  '引子 開篇',
+  '序文一段。',
+  '第一篇 再見篇 《再見篇》簡介',
+  '這是簡介內文。',
+  '第一篇 再見篇 再見篇第一章 紈褲',
+  '章內第一段。',
+  '第一篇 再見篇 再見篇第二十一章',
+  '章內第二段。',
   '第二章 繼續',
   '更多內容。',
   '这是简体句子。'
@@ -66,8 +69,13 @@ if (mime !== 'application/epub+zip') {
 }
 
 const chapters = JSON.parse(fs.readFileSync(path.join(tmp, 'chapters.json'), 'utf8'))
-if (chapters.length < 3) {
-  console.error('expected >=3 chapters, got', chapters.length)
+if (chapters.length < 5) {
+  console.error('expected >=5 chapters for mid-line 第N章 style, got', chapters.length)
+  process.exit(1)
+}
+const titles = chapters.map((c) => c.title).join('\n')
+if (!titles.includes('第二十一章') || !titles.includes('引子')) {
+  console.error('missing expected titles:\n' + titles)
   process.exit(1)
 }
 
