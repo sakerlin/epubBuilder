@@ -79,7 +79,7 @@ function splitIntoChapters (text, rules) {
     start(2, '正文')
   }
 
-  // Drop empty leading "正文" placeholder if a real heading follows with all content moved... 
+  // Drop empty leading "正文" placeholder if a real heading follows with all content moved...
   // Actually leading 正文 only holds pre-heading lines (e.g. 《人途》); keep it.
 
   return chapters
