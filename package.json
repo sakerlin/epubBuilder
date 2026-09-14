@@ -1,17 +1,18 @@
 {
   "name": "epubbuilder",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "build epub files from txt file",
   "main": "index.js",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node scripts/smoke-epub.js",
     "lint": "eslint src",
     "audit:check": "npm audit --audit-level=high"
   },
   "bin": {
+    "epubbuild": "./src/build.js",
     "splite": "./src/splite.js",
     "zipFile": "./src/zipFile.js",
     "convFile": "./src/convFile.js",
@@ -39,7 +40,8 @@
     "chardet": "^2.2.0",
     "commander": "^14.0.0",
     "iconv-lite": "^0.7.3",
-    "opencc-js": "^1.4.2"
+    "opencc-js": "^1.4.2",
+    "yazl": "^3.3.1"
   },
   "devDependencies": {
     "neostandard": "^0.13.0"

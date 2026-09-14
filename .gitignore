@@ -5,6 +5,8 @@ spliteFile.zip
 *_CHT.txt
 *_S2T.txt
 pms.txt
+*.epub
+chapters.json
 artifacts/
 coverage/
 dist/
