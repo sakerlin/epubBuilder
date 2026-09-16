@@ -60,10 +60,11 @@ function splitIntoChapters (text, rules, opts = {}) {
   const start = (level, rawTitle) => {
     idx++
     const cleaned = tidyTitle(rawTitle)
+    const style = (rules && rules.titleStyle) || opts.titleStyle || 'short'
     current = {
       id: 'chap_' + String(idx).padStart(4, '0'),
       level,
-      title: displayTitle(cleaned, level),
+      title: displayTitle(cleaned, level, style),
       rawTitle: cleaned,
       paragraphs: []
     }

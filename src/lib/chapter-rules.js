@@ -6,7 +6,7 @@ const { isChapterLikeHeading } = require('./title-clean')
 
 const DEFAULT_PATH = path.join(__dirname, 'default-chapter-rules.json')
 
-function loadRules (rulesPath) {
+function loadRules (rulesPath, overrides = {}) {
   const file = rulesPath
     ? path.resolve(process.cwd(), rulesPath)
     : DEFAULT_PATH
@@ -19,7 +19,8 @@ function loadRules (rulesPath) {
   if (!volume.length && !chapter.length) {
     throw new Error('Chapter rules need volume[] and/or chapter[] patterns')
   }
-  return compileRules(raw, file)
+  const merged = Object.assign({}, raw, overrides)
+  return compileRules(merged, file)
 }
 
 function compileRules (rules, source) {
@@ -30,10 +31,19 @@ function compileRules (rules, source) {
       throw new Error('Invalid ' + kind + ' regex [' + i + '] in ' + (source || 'rules') + ': ' + p + ' (' + err.message + ')')
     }
   }
+  const jianjieMode = ['volume', 'chapter', 'body'].includes(rules.jianjieMode)
+    ? rules.jianjieMode
+    : 'volume'
+  const titleStyle = ['short', 'full', 'arc'].includes(rules.titleStyle)
+    ? rules.titleStyle
+    : 'short'
+
   return {
     source: source || 'inline',
     maxHeadingLength: Number(rules.maxHeadingLength) > 0 ? Number(rules.maxHeadingLength) : 48,
     rejectProsePunctuation: rules.rejectProsePunctuation !== false,
+    jianjieMode,
+    titleStyle,
     volume: (rules.volume || []).map((p, i) => toRegex(p, 'volume', i)),
     chapter: (rules.chapter || []).map((p, i) => toRegex(p, 'chapter', i))
   }
@@ -41,6 +51,10 @@ function compileRules (rules, source) {
 
 function looksLikeProse (val) {
   return /[。！？；「」『』]/.test(val)
+}
+
+function isJianjieLine (val) {
+  return /簡介|简介/.test(val)
 }
 
 /**
@@ -54,7 +68,13 @@ function classifyLine (line, compiled) {
   if (val.length > maxLen) return 'body'
   if (compiled.rejectProsePunctuation !== false && looksLikeProse(val)) return 'body'
 
-  // Structural override: 篇+第N章 / double 第N篇 → chapter even if also looks like volume
+  if (isJianjieLine(val)) {
+    const mode = compiled.jianjieMode || 'volume'
+    if (mode === 'body') return 'body'
+    if (mode === 'chapter') return 'chapter'
+    // volume: continue (prefer volume match below if any)
+  }
+
   if (isChapterLikeHeading(val)) return 'chapter'
 
   for (const re of compiled.chapter) {
@@ -63,6 +83,12 @@ function classifyLine (line, compiled) {
   for (const re of compiled.volume) {
     if (re.test(val)) return 'volume'
   }
+
+  // bare 簡介 with volume mode and no volume regex hit
+  if (isJianjieLine(val) && (compiled.jianjieMode || 'volume') === 'volume') {
+    return 'volume'
+  }
+
   return 'body'
 }
 
