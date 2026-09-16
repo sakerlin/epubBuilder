@@ -85,9 +85,7 @@ if (!joined.includes('第二十一章') || !joined.includes('引子')) {
 const expectTitles = ['再見篇·簡介', '第一章 紈褲', '第二十一章', '第六篇']
 for (const t of expectTitles) {
   if (!titles.includes(t)) {
-    console.error('expected cleaned title missing:', t, '
-got:
-' + joined)
+    console.error('expected cleaned title missing:', t, '\ngot:\n' + joined)
     process.exit(1)
   }
 }
