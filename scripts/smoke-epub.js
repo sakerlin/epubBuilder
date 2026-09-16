@@ -70,6 +70,13 @@ if (mime !== 'application/epub+zip') {
   process.exit(1)
 }
 
+const { validateEpubFile } = require('../src/lib/epub-validate')
+const report = validateEpubFile(epub)
+if (!report.ok) {
+  console.error('validateEpubFile failed:', report.errors)
+  process.exit(1)
+}
+
 const chapters = JSON.parse(fs.readFileSync(path.join(tmp, 'chapters.json'), 'utf8'))
 if (chapters.length < 6) {
   console.error('expected >=6 chapters, got', chapters.length)

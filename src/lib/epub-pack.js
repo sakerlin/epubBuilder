@@ -14,17 +14,22 @@ function xmlEscape (s) {
     .replace(/'/g, '&apos;')
 }
 
-function xhtmlChapter (chapter, cssHref) {
-  const paras = chapter.paragraphs
+function langAttrs (language) {
+  const lang = language || 'zh-TW'
+  return 'xml:lang="' + xmlEscape(lang) + '" lang="' + xmlEscape(lang) + '"'
+}
+
+function xhtmlChapter (chapter, cssHref, language) {
+  const paras = (chapter.paragraphs || [])
     .map((p) => '    <p>' + xmlEscape(p) + '</p>')
     .join('\n')
   const heading = chapter.level === 1
-    ? '    <h2>' + xmlEscape(chapter.title) + '</h2>'
-    : '    <h3>' + xmlEscape(chapter.title) + '</h3>'
+    ? '    <h2 id="' + xmlEscape(chapter.id) + '">' + xmlEscape(chapter.title) + '</h2>'
+    : '    <h3 id="' + xmlEscape(chapter.id) + '">' + xmlEscape(chapter.title) + '</h3>'
 
   return '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<!DOCTYPE html>\n' +
-    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-TW" lang="zh-TW">\n' +
+    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" ' + langAttrs(language) + '>\n' +
     '<head>\n' +
     '  <meta charset="UTF-8"/>\n' +
     '  <title>' + xmlEscape(chapter.title) + '</title>\n' +
@@ -39,18 +44,23 @@ function xhtmlChapter (chapter, cssHref) {
     '</html>\n'
 }
 
-function navDocument (chapters, title) {
-  const items = chapters.map((ch, i) => {
+function navDocument (chapters, title, language, cssHref) {
+  const items = chapters.map((ch) => {
     const href = 'text/' + ch.id + '.xhtml'
     return '      <li><a href="' + href + '">' + xmlEscape(ch.title) + '</a></li>'
   }).join('\n')
 
+  const css = cssHref
+    ? '  <link rel="stylesheet" type="text/css" href="' + cssHref + '"/>\n'
+    : ''
+
   return '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<!DOCTYPE html>\n' +
-    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-TW" lang="zh-TW">\n' +
+    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" ' + langAttrs(language) + '>\n' +
     '<head>\n' +
     '  <meta charset="UTF-8"/>\n' +
     '  <title>' + xmlEscape(title) + ' - 目錄</title>\n' +
+    css +
     '</head>\n' +
     '<body>\n' +
     '  <nav epub:type="toc" id="toc">\n' +
@@ -59,6 +69,31 @@ function navDocument (chapters, title) {
     items + '\n' +
     '    </ol>\n' +
     '  </nav>\n' +
+    '</body>\n' +
+    '</html>\n'
+}
+
+/** Linear TOC page in spine (readable page, not only machine nav). */
+function frontTocDocument (chapters, title, language) {
+  const items = chapters.map((ch) =>
+    '    <li><a href="' + ch.id + '.xhtml">' + xmlEscape(ch.title) + '</a></li>'
+  ).join('\n')
+
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<!DOCTYPE html>\n' +
+    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" ' + langAttrs(language) + '>\n' +
+    '<head>\n' +
+    '  <meta charset="UTF-8"/>\n' +
+    '  <title>' + xmlEscape(title) + ' - 目錄</title>\n' +
+    '  <link rel="stylesheet" type="text/css" href="../styles/main.css"/>\n' +
+    '</head>\n' +
+    '<body>\n' +
+    '  <section epub:type="toc">\n' +
+    '    <h1>目錄</h1>\n' +
+    '    <ol class="toc">\n' +
+    items + '\n' +
+    '    </ol>\n' +
+    '  </section>\n' +
     '</body>\n' +
     '</html>\n'
 }
@@ -73,26 +108,50 @@ function containerXml () {
 }
 
 function defaultCss () {
-  return 'body {\n' +
-    '  font-family: "Noto Serif CJK TC", "Source Han Serif TC", serif;\n' +
+  return 'html, body {\n' +
+    '  height: 100%;\n' +
+    '}\n' +
+    'body {\n' +
+    '  font-family: "Noto Serif CJK TC", "Source Han Serif TC", "PingFang TC", serif;\n' +
     '  line-height: 1.7;\n' +
     '  margin: 1em;\n' +
     '}\n' +
-    'h2, h3 { text-align: center; margin: 1.2em 0 0.8em; }\n' +
+    'h1, h2, h3 { text-align: center; margin: 1.2em 0 0.8em; font-weight: 600; }\n' +
     'p { text-indent: 2em; margin: 0.4em 0; }\n' +
-    'img.cover { max-width: 100%; height: auto; display: block; margin: 0 auto; }\n'
+    'ol.toc { padding-left: 1.4em; }\n' +
+    'ol.toc li { margin: 0.35em 0; text-indent: 0; }\n' +
+    '/* cover: centered, full-bleed friendly */\n' +
+    'body.cover-page {\n' +
+    '  margin: 0;\n' +
+    '  padding: 0;\n' +
+    '  display: flex;\n' +
+    '  align-items: center;\n' +
+    '  justify-content: center;\n' +
+    '  min-height: 100vh;\n' +
+    '  background: #000;\n' +
+    '}\n' +
+    'body.cover-page section { margin: 0; width: 100%; }\n' +
+    'img.cover {\n' +
+    '  display: block;\n' +
+    '  max-width: 100%;\n' +
+    '  max-height: 100vh;\n' +
+    '  width: auto;\n' +
+    '  height: auto;\n' +
+    '  margin: 0 auto;\n' +
+    '  object-fit: contain;\n' +
+    '}\n'
 }
 
-function coverPage (imageName) {
+function coverPage (imageName, language) {
   return '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<!DOCTYPE html>\n' +
-    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-TW" lang="zh-TW">\n' +
+    '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" ' + langAttrs(language) + '>\n' +
     '<head>\n' +
     '  <meta charset="UTF-8"/>\n' +
     '  <title>Cover</title>\n' +
     '  <link rel="stylesheet" type="text/css" href="../styles/main.css"/>\n' +
     '</head>\n' +
-    '<body>\n' +
+    '<body class="cover-page">\n' +
     '  <section epub:type="cover">\n' +
     '    <img class="cover" src="../images/' + xmlEscape(imageName) + '" alt="cover"/>\n' +
     '  </section>\n' +
@@ -121,7 +180,9 @@ function contentOpf (opts) {
     chapters,
     coverImageName,
     coverMediaType,
-    modified
+    modified,
+    frontToc,
+    spineToc
   } = opts
 
   const manifestCover = coverImageName
@@ -129,11 +190,17 @@ function contentOpf (opts) {
       '    <item id="cover" href="text/cover.xhtml" media-type="application/xhtml+xml"/>\n'
     : ''
 
+  const manifestFrontToc = frontToc
+    ? '    <item id="front-toc" href="text/toc.xhtml" media-type="application/xhtml+xml"/>\n'
+    : ''
+
   const manifestChaps = chapters.map((ch) =>
     '    <item id="' + ch.id + '" href="text/' + ch.id + '.xhtml" media-type="application/xhtml+xml"/>'
   ).join('\n')
 
   const spineCover = coverImageName ? '    <itemref idref="cover"/>\n' : ''
+  const spineFront = frontToc ? '    <itemref idref="front-toc"/>\n' : ''
+  const spineNav = spineToc ? '    <itemref idref="nav" linear="no"/>\n' : ''
   const spineChaps = chapters.map((ch) => '    <itemref idref="' + ch.id + '"/>').join('\n')
 
   const metaCover = coverImageName ? '    <meta name="cover" content="cover-image"/>\n' : ''
@@ -152,10 +219,13 @@ function contentOpf (opts) {
     '    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>\n' +
     '    <item id="css" href="styles/main.css" media-type="text/css"/>\n' +
     manifestCover +
+    manifestFrontToc +
     manifestChaps + '\n' +
     '  </manifest>\n' +
     '  <spine>\n' +
     spineCover +
+    spineFront +
+    spineNav +
     spineChaps + '\n' +
     '  </spine>\n' +
     '</package>\n'
@@ -163,18 +233,6 @@ function contentOpf (opts) {
 
 /**
  * Build an EPUB 3 file on disk.
- * Streams chapter XHTML into the zip one-by-one (does not keep all chapter
- * bodies buffered as a second full copy).
- * @param {{
- *   chapters: Array<{id:string,level:1|2,title:string,paragraphs:string[]}>,
- *   title: string,
- *   author?: string,
- *   language?: string,
- *   coverPath?: string,
- *   outPath: string,
- *   onProgress?: (cur: number, total: number, label?: string) => void,
- *   freeChapterBodies?: boolean
- * }} options
  */
 function buildEpub (options) {
   const title = options.title || 'Untitled'
@@ -184,6 +242,10 @@ function buildEpub (options) {
   const outPath = options.outPath
   const onProgress = options.onProgress
   const freeChapterBodies = options.freeChapterBodies !== false
+  const frontToc = !!options.frontToc
+  const spineToc = !!options.spineToc
+  const cssText = options.cssText != null ? String(options.cssText) : defaultCss()
+
   if (!outPath) throw new Error('outPath required')
   if (!chapters.length) throw new Error('no chapters to pack')
 
@@ -202,7 +264,6 @@ function buildEpub (options) {
     coverBuf = fs.readFileSync(abs)
   }
 
-  // OPF/nav only need id+title metadata
   const spineMeta = chapters.map((ch) => ({
     id: ch.id,
     title: ch.title,
@@ -221,16 +282,25 @@ function buildEpub (options) {
         chapters: spineMeta,
         coverImageName,
         coverMediaType,
-        modified
+        modified,
+        frontToc,
+        spineToc
       })
     },
-    { name: 'OEBPS/nav.xhtml', data: navDocument(spineMeta, title) },
-    { name: 'OEBPS/styles/main.css', data: defaultCss() }
+    { name: 'OEBPS/nav.xhtml', data: navDocument(spineMeta, title, language, 'styles/main.css') },
+    { name: 'OEBPS/styles/main.css', data: cssText }
   ]
 
   if (coverImageName && coverBuf) {
     shellEntries.push({ name: 'OEBPS/images/' + coverImageName, data: coverBuf })
-    shellEntries.push({ name: 'OEBPS/text/cover.xhtml', data: coverPage(coverImageName) })
+    shellEntries.push({ name: 'OEBPS/text/cover.xhtml', data: coverPage(coverImageName, language) })
+  }
+
+  if (frontToc) {
+    shellEntries.push({
+      name: 'OEBPS/text/toc.xhtml',
+      data: frontTocDocument(spineMeta, title, language)
+    })
   }
 
   const absOut = path.resolve(outPath)
@@ -258,7 +328,6 @@ function buildEpub (options) {
 
     zipfile.outputStream.pipe(out)
 
-    // EPUB requires mimetype first and uncompressed
     zipfile.addBuffer(Buffer.from('application/epub+zip'), 'mimetype', { compress: false })
 
     for (const e of shellEntries) {
@@ -270,11 +339,9 @@ function buildEpub (options) {
 
     for (let i = 0; i < chapters.length; i++) {
       const ch = chapters[i]
-      const xhtml = xhtmlChapter(ch, '../styles/main.css')
+      const xhtml = xhtmlChapter(ch, '../styles/main.css', language)
       zipfile.addBuffer(Buffer.from(xhtml, 'utf8'), 'OEBPS/text/' + ch.id + '.xhtml')
-      if (freeChapterBodies) {
-        ch.paragraphs = null
-      }
+      if (freeChapterBodies) ch.paragraphs = null
       step++
       if (onProgress) onProgress(step, totalSteps, 'pack-chapters')
     }
@@ -286,5 +353,8 @@ function buildEpub (options) {
 module.exports = {
   buildEpub,
   xmlEscape,
-  xhtmlChapter
+  xhtmlChapter,
+  defaultCss,
+  navDocument,
+  frontTocDocument
 }

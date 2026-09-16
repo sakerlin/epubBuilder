@@ -1,22 +1,16 @@
 'use strict'
 
 const CN_NUM = '[零一二兩三四五六七八九十百千两兩\\d]+'
-const RE_CHAP_UNIT = new RegExp('第' + CN_NUM + '[章節]', 'g')
-const RE_PIAN_UNIT = new RegExp('第' + CN_NUM + '篇', 'g')
 
 /**
- * Short TOC / spine title from a raw heading line.
- * Examples:
- *  - "第一篇 再見篇 再見篇第二十一章 紈褲" → "第二十一章 紈褲"
- *  - "第七篇 大風篇 大風篇 第十二章" → "第十二章"
- *  - "…第三十一章-第三十二章(大結局)" → "第三十一章-第三十二章(大結局)"
- *  - "第一篇 再見篇 《再見篇》簡介" → "再見篇·簡介"
- *  - "第五篇 厚積篇 厚積篇第六篇" → "第六篇"
- *  - "引子 風花雪月之風" → "引子 風花雪月之風"
+ * @param {string} raw
+ * @param {1|2} level
+ * @param {'short'|'full'|'arc'} [style]
  */
-function displayTitle (raw, level) {
+function displayTitle (raw, level, style = 'short') {
   const s = String(raw || '').replace(/\s+/g, ' ').trim()
   if (!s) return s
+  if (style === 'full') return s
 
   if (/簡介|简介/.test(s)) {
     const book = s.match(/《([^》]+)》/)
@@ -37,7 +31,16 @@ function displayTitle (raw, level) {
         startIdx = a.index
       }
     }
-    return s.slice(startIdx).trim()
+    const core = s.slice(startIdx).trim()
+    if (style === 'arc') {
+      const before = s.slice(0, startIdx)
+      const arc = before.match(/([\u4e00-\u9fffA-Za-z0-9]{1,12}篇)\s*$/)
+      if (arc) {
+        const arcName = arc[1].replace(/篇$/, '')
+        return arcName + '·' + core
+      }
+    }
+    return core
   }
 
   const pianMatches = [...s.matchAll(new RegExp('第' + CN_NUM + '篇', 'g'))]
@@ -58,9 +61,6 @@ function displayTitle (raw, level) {
   return s
 }
 
-/**
- * 篇+第N章 / double 第N篇 → chapter (not volume)
- */
 function isChapterLikeHeading (val) {
   const s = String(val || '').trim()
   if (new RegExp('第' + CN_NUM + '[章節]').test(s)) return true
@@ -71,7 +71,5 @@ function isChapterLikeHeading (val) {
 module.exports = {
   displayTitle,
   isChapterLikeHeading,
-  RE_CHAP_UNIT,
-  RE_PIAN_UNIT,
   CN_NUM
 }
