@@ -9,7 +9,6 @@ function createProgress (opts = {}) {
   const verbose = !!opts.verbose
   const t0 = Date.now()
   let lastWrite = 0
-  let currentPhase = ''
 
   function elapsed () {
     return ((Date.now() - t0) / 1000).toFixed(1) + 's'
@@ -17,7 +16,6 @@ function createProgress (opts = {}) {
 
   function phase (name, detail) {
     if (quiet) return
-    currentPhase = name
     const extra = detail ? ' ' + detail : ''
     console.error('[epubbuild] ' + name + extra + '  (' + elapsed() + ')')
   }
