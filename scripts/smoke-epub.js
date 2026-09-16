@@ -20,6 +20,8 @@ const body = [
   '章內第一段。',
   '第一篇 再見篇 再見篇第二十一章',
   '章內第二段。',
+  '第五篇 厚積篇 厚積篇第六篇',
+  '誤用篇當章。',
   '第二章 繼續',
   '更多內容。',
   '这是简体句子。'
@@ -69,13 +71,37 @@ if (mime !== 'application/epub+zip') {
 }
 
 const chapters = JSON.parse(fs.readFileSync(path.join(tmp, 'chapters.json'), 'utf8'))
-if (chapters.length < 5) {
-  console.error('expected >=5 chapters for mid-line 第N章 style, got', chapters.length)
+if (chapters.length < 6) {
+  console.error('expected >=6 chapters, got', chapters.length)
   process.exit(1)
 }
-const titles = chapters.map((c) => c.title).join('\n')
-if (!titles.includes('第二十一章') || !titles.includes('引子')) {
-  console.error('missing expected titles:\n' + titles)
+const titles = chapters.map((c) => c.title)
+const joined = titles.join('\n')
+if (!joined.includes('第二十一章') || !joined.includes('引子')) {
+  console.error('missing expected titles:\n' + joined)
+  process.exit(1)
+}
+// TOC cleanup expectations
+const expect = {
+  '再見篇·簡介': true,
+  '第一章 紈褲': true,
+  '第二十一章': true,
+  '第六篇': true
+}
+for (const t of Object.keys(expect)) {
+  if (!titles.includes(t)) {
+    console.error('expected cleaned title missing:', t, '\ngot:\n' + joined)
+    process.exit(1)
+  }
+}
+// long raw prefix should not remain as display title
+if (titles.some((t) => t.includes('第一篇 再見篇 再見篇'))) {
+  console.error('display title still has long raw prefix:\n' + joined)
+  process.exit(1)
+}
+const sixth = chapters.find((c) => c.rawTitle && c.rawTitle.includes('厚積篇第六篇'))
+if (!sixth || sixth.level !== 2) {
+  console.error('厚積篇第六篇 should be chapter level 2', sixth)
   process.exit(1)
 }
 
