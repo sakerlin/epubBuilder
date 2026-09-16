@@ -1,6 +1,8 @@
 {
   "maxHeadingLength": 48,
   "rejectProsePunctuation": true,
+  "jianjieMode": "volume",
+  "titleStyle": "short",
   "volume": [
     "^第[零一二三四五六七八九十百千\\d]{1,8}篇",
     "^第[零一二三四五六七八九十百千\\d]{1,8}卷"
