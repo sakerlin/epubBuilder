@@ -39,6 +39,11 @@ epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
 範例規則：`examples/chapter-rules.sample.json`  
 內建預設規則：`src/lib/default-chapter-rules.json`
 
+**目錄標題會自動縮短**（`rawTitle` 仍保留原文）：  
+- `第一篇 再見篇 再見篇第二十一章 紈褲` → `第二十一章 紈褲`  
+- `第一篇 再見篇 《再見篇》簡介` → `再見篇·簡介`  
+- 兩個 `第N篇`（誤用篇當章號）→ 當章節，標題取最後一個 `第N篇`
+
 產生的是 **EPUB 3**（`nav` 目錄 + OPF），可用 Calibre / Apple Books / 多數閱讀器開啟。不再依賴系統 `zip` 指令。
 
 ```

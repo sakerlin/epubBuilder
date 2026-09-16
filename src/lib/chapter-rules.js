@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { isChapterLikeHeading } = require('./title-clean')
 
 const DEFAULT_PATH = path.join(__dirname, 'default-chapter-rules.json')
 
@@ -39,7 +40,6 @@ function compileRules (rules, source) {
 }
 
 function looksLikeProse (val) {
-  // Full-width / half-width sentence punctuation → almost certainly body text
   return /[。！？；「」『』]/.test(val)
 }
 
@@ -54,7 +54,9 @@ function classifyLine (line, compiled) {
   if (val.length > maxLen) return 'body'
   if (compiled.rejectProsePunctuation !== false && looksLikeProse(val)) return 'body'
 
-  // chapter before volume so "第一篇 … 第二十一章" counts as chapter
+  // Structural override: 篇+第N章 / double 第N篇 → chapter even if also looks like volume
+  if (isChapterLikeHeading(val)) return 'chapter'
+
   for (const re of compiled.chapter) {
     if (re.test(val)) return 'chapter'
   }
