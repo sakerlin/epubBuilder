@@ -18,9 +18,27 @@ npm link
 
 ## 一鍵組 EPUB（建議）
 
+### 單檔
 ```
 epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
+epubbuild examples/demo-novel.txt -o demo.epub --front-toc
 ```
+
+### 批次／目錄
+```
+epubbuild novels/ --out-dir out-epubs/
+epubbuild a.txt b.txt --out-dir out-epubs/
+```
+- 目錄會遞迴收集 `.txt` / `.md`
+- 每本書輸出 `<stem>.epub`；批次請用 `--out-dir`（不要用 `-o`）
+
+### 大檔串流
+```
+epubbuild big.txt --stream -o big.epub
+```
+- 預設：**≥ 2MB** 自動走 line-stream（不整檔再複製一份字串）
+- `--stream` 強制串流；`--no-stream` 強制整檔讀取
+- `--stream-threshold <bytes>` 調整自動門檻
 
 常用選項：
 
@@ -44,13 +62,18 @@ epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
 | `--front-toc` | 封面後插入可翻頁的目錄頁 |
 | `--spine-toc` | spine 納入 machine nav（`linear="no"`） |
 | `--no-validate` | 跳過組完後的 EPUB 結構自檢 |
+| `--stream` / `--no-stream` | 強制／關閉 line-stream 切章 |
+| `--stream-threshold <bytes>` | 自動串流門檻（預設 2097152） |
+| `--out-dir <dir>` | 批次輸出目錄 |
 
 組完預設會做 **結構自檢**（mimetype 首位 stored、OPF/nav 引用、spine idref）。
 
-大檔（數 MB／數萬行）會在 **stderr** 顯示階段進度：`read → s2t → preformat → split → pack`，打包時逐章寫入 zip 並釋放章節正文以降低尖峰記憶體。
+大檔會在 **stderr** 顯示階段進度；串流模式以行為單位讀取，降低尖峰記憶體。打包時逐章寫 zip 並釋放章節正文。
 
-範例規則：`examples/chapter-rules.sample.json`  
-內建預設規則：`src/lib/default-chapter-rules.json`
+範例：
+- 小說：`examples/demo-novel.txt`
+- 規則：`examples/chapter-rules.sample.json` + 說明 `examples/README.md`
+- 內建預設：`src/lib/default-chapter-rules.json`
 
 **目錄標題會自動縮短**（`rawTitle` 仍保留原文）：  
 - `第一篇 再見篇 再見篇第二十一章 紈褲` → `第二十一章 紈褲`  
@@ -62,7 +85,7 @@ epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
 ```
 npm test
 ```
-會跑：章節 fixture → epub smoke（含 zip `mimetype`）→ legacy CLI pipeline。
+會跑：章節 fixture → C/D/E 功能 → **F/G/H（串流／批次／demo）** → epub smoke → legacy CLI pipeline。
 
 ```
 npm run test:fixtures   # 只跑章節/標題 golden
