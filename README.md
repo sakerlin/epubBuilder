@@ -29,14 +29,23 @@ epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
 | `-o, --output` | 輸出 `.epub`（預設：與輸入同目錄、同檔名） |
 | `-t, --title` | 書名（預設：輸入檔名） |
 | `-a, --author` | 作者 |
-| `-l, --lang` | 語言 tag（預設 `zh-TW`） |
-| `-c, --cover` | 封面圖（jpg/png/gif/webp） |
+| `-l, --lang` | 語言 tag（寫入 OPF **與** xhtml，預設 `zh-TW`） |
+| `-c, --cover` | 封面圖（jpg/png/gif/webp；置中／接近 full-bleed CSS） |
 | `-r, --rules` | 章節規則 JSON（`volume` / `chapter` 正則陣列） |
 | `--s2t` | 組書前簡轉繁 |
 | `--no-preformat` | 略過空白行清理與標題空白整理 |
 | `--dump-chapters` | 另外輸出章節 JSON（除錯用） |
 | `-v, --verbose` | 更密的進度輸出 |
 | `-q, --quiet` | 只輸出最終 epub 路徑（與錯誤） |
+| `--max-heading-length <n>` | 超過此長度的行不當標題（預設 48） |
+| `--jianjie-as <mode>` | `簡介` 行：`volume`（預設）/ `chapter` / `body` |
+| `--title-style <style>` | 目錄標題：`short`（預設）/ `full` / `arc`（如 `再見·第二十一章`） |
+| `--css <file>` | 自訂 CSS（取代預設樣式） |
+| `--front-toc` | 封面後插入可翻頁的目錄頁 |
+| `--spine-toc` | spine 納入 machine nav（`linear="no"`） |
+| `--no-validate` | 跳過組完後的 EPUB 結構自檢 |
+
+組完預設會做 **結構自檢**（mimetype 首位 stored、OPF/nav 引用、spine idref）。
 
 大檔（數 MB／數萬行）會在 **stderr** 顯示階段進度：`read → s2t → preformat → split → pack`，打包時逐章寫入 zip 並釋放章節正文以降低尖峰記憶體。
 
