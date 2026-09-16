@@ -3,25 +3,35 @@
 const fs = require('fs')
 const path = require('path')
 const { Command } = require('commander')
+const { loadRules } = require('./chapter-rules')
 
 /**
  * Parse a single required file argument (Commander v12+).
  * @param {string} name CLI name
  * @param {string} [version]
- * @returns {{ program: import('commander').Command, inputFile: string }}
+ * @param {{ extraOptions?: (p: import('commander').Command) => void }} [opts]
+ * @returns {{ program: import('commander').Command, inputFile: string, rules: ReturnType<typeof loadRules>, opts: object }}
  */
-function parseFileProgram (name, version = '0.0.1') {
+function parseFileProgram (name, version = '1.3.1', opts = {}) {
   const program = new Command()
   program
     .name(name)
     .version(version)
     .argument('<fileName>', 'input text file path')
+    .option('-r, --rules <file>', 'chapter rules JSON (same as epubbuild)')
     .showHelpAfterError()
-    .parse(process.argv)
+
+  if (typeof opts.extraOptions === 'function') {
+    opts.extraOptions(program)
+  }
+
+  program.parse(process.argv)
 
   const raw = program.args[0]
   const inputFile = path.resolve(process.cwd(), String(raw))
-  return { program, inputFile }
+  const cliOpts = program.opts()
+  const rules = loadRules(cliOpts.rules || null)
+  return { program, inputFile, rules, opts: cliOpts }
 }
 
 /**
@@ -49,6 +59,13 @@ function exitIfMissing (file) {
   }
 }
 
+/** Read UTF-8 text, strip BOM. */
+function readUtf8 (file) {
+  let text = fs.readFileSync(file, 'utf8')
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1)
+  return text
+}
+
 /** @deprecated use parseFileProgram */
 function requireInputFile (program) {
   const raw = program.args && program.args[0]
@@ -66,5 +83,6 @@ module.exports = {
   outputBeside,
   inputStem,
   ensureDir,
-  exitIfMissing
+  exitIfMissing,
+  readUtf8
 }

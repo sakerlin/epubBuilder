@@ -60,14 +60,24 @@ npm test
 ## 預先處理
 ```
 preformat [filename]
+preformat [filename] -r my-rules.json
 ```
-產生 `<stem>_formated.txt`（與輸入檔同目錄）。
+產生 `<stem>_formated.txt`（與輸入檔同目錄）。  
+**與 `epubbuild` 共用** `src/lib/text-pipeline` + 預設章節規則。
 
 ## 分割檔案
 ```
 splite [filename]
+splite [filename] -r my-rules.json
 ```
-清空並寫入 `./spliteFile/<stem>_N.xhtml`（自動建立目錄；給 Sigil 手工組書用）。
+清空並寫入 `./spliteFile/<stem>_N.xhtml`（自動建立目錄；給 Sigil 手工組書用）。  
+章節切分與標題清洗邏輯同 `epubbuild`。
+
+## Markdown 大綱
+```
+mdconver [filename]
+```
+輸出 `<stem>_MD.txt`（`#` / `##` 標題），規則同上。
 
 ## gbk 轉 繁體 utf8
 ```
