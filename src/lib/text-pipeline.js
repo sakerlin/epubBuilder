@@ -8,7 +8,11 @@ const { displayTitle } = require('./title-clean')
  */
 function tidyTitle (val) {
   let s = val.replace(/\s+/g, ' ').trim()
-  s = s.replace(/(第[零一二三四五六七八九十百千两兩\d]{1,8}[篇章卷集冊])(?=\S)/g, '$1 ')
+  // insert space after 篇/卷/章 markers, but not before range connectors or brackets
+  s = s.replace(
+    /(第[零一二三四五六七八九十百千两兩\d]{1,8}[篇章卷集冊])(?=[^\s\-—–~～至到（(])/g,
+    '$1 '
+  )
   s = s.replace(/\s+/g, ' ').trim()
   return s
 }

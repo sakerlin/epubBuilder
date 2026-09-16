@@ -1,14 +1,15 @@
 {
   "name": "epubbuilder",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "build epub files from txt file",
   "main": "index.js",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "test": "node scripts/smoke-epub.js && node scripts/smoke-cli-pipeline.js",
-    "lint": "eslint src",
+    "test": "node scripts/test-chapter-fixtures.js && node scripts/smoke-epub.js && node scripts/smoke-cli-pipeline.js",
+    "test:fixtures": "node scripts/test-chapter-fixtures.js",
+    "lint": "eslint src scripts",
     "audit:check": "npm audit --audit-level=high"
   },
   "bin": {

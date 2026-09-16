@@ -50,7 +50,7 @@ function displayTitle (raw, level) {
     const book = s.match(/《([^》]+)》/)
     if (book) return book[1]
     const parts = s.split(' ').filter(Boolean)
-    if (parts.length >= 2 && new RegExp('^第' + CN_NUM + '篇$').test(parts[0])) {
+    if (parts.length >= 2 && new RegExp('^第' + CN_NUM + '[篇章卷集冊]$').test(parts[0])) {
       return parts.slice(1).join(' ')
     }
   }

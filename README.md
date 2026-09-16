@@ -53,7 +53,15 @@ epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
 ```
 npm test
 ```
-會跑一輪 smoke（組 EPUB 並檢查 zip 內 `mimetype` 為首個 stored entry）。
+會跑：章節 fixture → epub smoke（含 zip `mimetype`）→ legacy CLI pipeline。
+
+```
+npm run test:fixtures   # 只跑章節/標題 golden
+npm run lint
+npm run audit:check
+```
+
+CI：`.github/workflows/ci.yml`（Node 18/20/22：lint + test + audit）。
 
 ---
 

@@ -1,0 +1,24 @@
+{
+  "classify": [
+    { "line": "引子 開篇引", "expect": "chapter" },
+    { "line": "第一篇 再見篇 再見篇第二十一章", "expect": "chapter" },
+    { "line": "第一篇 再見篇 再見篇第一章 紈褲", "expect": "chapter" },
+    { "line": "第一篇 再見篇 《再見篇》簡介", "expect": "volume" },
+    { "line": "第五篇 厚積篇 厚積篇第六篇", "expect": "chapter" },
+    { "line": "厚積篇 第五十一章", "expect": "chapter" },
+    { "line": "第七章 繼續", "expect": "chapter" },
+    { "line": "第一卷 起源", "expect": "volume" },
+    { "line": "血紅的第一卷《再見篇》情節奇詭，處處出人意料。", "expect": "body" },
+    { "line": "風大先生第一個回過神來，他沉聲喝道：「花大檢查四周。」", "expect": "body" },
+    { "line": "正常的遊客，面對這麼多的明星，可能一點兒表情都沒有麼？", "expect": "body" }
+  ],
+  "displayTitle": [
+    { "raw": "第一篇 再見篇 再見篇第二十一章 紈褲", "level": 2, "expect": "第二十一章 紈褲" },
+    { "raw": "第七篇 大風篇 大風篇 第十二章", "level": 2, "expect": "第十二章" },
+    { "raw": "第七篇 大風篇 大風篇 第三十一章-第三十二章(大結局)", "level": 2, "expect": "第三十一章-第三十二章(大結局)" },
+    { "raw": "第一篇 再見篇 《再見篇》簡介", "level": 1, "expect": "再見篇·簡介" },
+    { "raw": "第五篇 厚積篇 厚積篇第六篇", "level": 2, "expect": "第六篇" },
+    { "raw": "引子 風花雪月之風", "level": 2, "expect": "引子 風花雪月之風" },
+    { "raw": "厚積篇 第五十一章", "level": 2, "expect": "第五十一章" }
+  ]
+}
