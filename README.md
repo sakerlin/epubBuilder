@@ -35,6 +35,10 @@ epubbuild novel.txt -o novel.epub --title "書名" --author "作者"
 | `--s2t` | 組書前簡轉繁 |
 | `--no-preformat` | 略過空白行清理與標題空白整理 |
 | `--dump-chapters` | 另外輸出章節 JSON（除錯用） |
+| `-v, --verbose` | 更密的進度輸出 |
+| `-q, --quiet` | 只輸出最終 epub 路徑（與錯誤） |
+
+大檔（數 MB／數萬行）會在 **stderr** 顯示階段進度：`read → s2t → preformat → split → pack`，打包時逐章寫入 zip 並釋放章節正文以降低尖峰記憶體。
 
 範例規則：`examples/chapter-rules.sample.json`  
 內建預設規則：`src/lib/default-chapter-rules.json`

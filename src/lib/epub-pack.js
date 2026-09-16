@@ -163,13 +163,17 @@ function contentOpf (opts) {
 
 /**
  * Build an EPUB 3 file on disk.
+ * Streams chapter XHTML into the zip one-by-one (does not keep all chapter
+ * bodies buffered as a second full copy).
  * @param {{
  *   chapters: Array<{id:string,level:1|2,title:string,paragraphs:string[]}>,
  *   title: string,
  *   author?: string,
  *   language?: string,
  *   coverPath?: string,
- *   outPath: string
+ *   outPath: string,
+ *   onProgress?: (cur: number, total: number, label?: string) => void,
+ *   freeChapterBodies?: boolean
  * }} options
  */
 function buildEpub (options) {
@@ -178,6 +182,8 @@ function buildEpub (options) {
   const language = options.language || 'zh-TW'
   const chapters = options.chapters || []
   const outPath = options.outPath
+  const onProgress = options.onProgress
+  const freeChapterBodies = options.freeChapterBodies !== false
   if (!outPath) throw new Error('outPath required')
   if (!chapters.length) throw new Error('no chapters to pack')
 
@@ -196,60 +202,83 @@ function buildEpub (options) {
     coverBuf = fs.readFileSync(abs)
   }
 
-  const entries = []
+  // OPF/nav only need id+title metadata
+  const spineMeta = chapters.map((ch) => ({
+    id: ch.id,
+    title: ch.title,
+    level: ch.level
+  }))
 
-  // mimetype handled separately (stored, first)
-  entries.push({ name: 'META-INF/container.xml', data: containerXml() })
-  entries.push({
-    name: 'OEBPS/content.opf',
-    data: contentOpf({
-      title,
-      author,
-      language,
-      uuid,
-      chapters,
-      coverImageName,
-      coverMediaType,
-      modified
-    })
-  })
-  entries.push({ name: 'OEBPS/nav.xhtml', data: navDocument(chapters, title) })
-  entries.push({ name: 'OEBPS/styles/main.css', data: defaultCss() })
+  const shellEntries = [
+    { name: 'META-INF/container.xml', data: containerXml() },
+    {
+      name: 'OEBPS/content.opf',
+      data: contentOpf({
+        title,
+        author,
+        language,
+        uuid,
+        chapters: spineMeta,
+        coverImageName,
+        coverMediaType,
+        modified
+      })
+    },
+    { name: 'OEBPS/nav.xhtml', data: navDocument(spineMeta, title) },
+    { name: 'OEBPS/styles/main.css', data: defaultCss() }
+  ]
 
   if (coverImageName && coverBuf) {
-    entries.push({ name: 'OEBPS/images/' + coverImageName, data: coverBuf })
-    entries.push({ name: 'OEBPS/text/cover.xhtml', data: coverPage(coverImageName) })
+    shellEntries.push({ name: 'OEBPS/images/' + coverImageName, data: coverBuf })
+    shellEntries.push({ name: 'OEBPS/text/cover.xhtml', data: coverPage(coverImageName) })
   }
 
-  for (const ch of chapters) {
-    entries.push({
-      name: 'OEBPS/text/' + ch.id + '.xhtml',
-      data: xhtmlChapter(ch, '../styles/main.css')
-    })
-  }
+  const absOut = path.resolve(outPath)
+  fs.mkdirSync(path.dirname(absOut), { recursive: true })
 
-  fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true })
+  const totalSteps = shellEntries.length + chapters.length
+  let step = 0
 
   return new Promise((resolve, reject) => {
     const zipfile = new ZipFile()
-    const out = fs.createWriteStream(outPath)
+    const out = fs.createWriteStream(absOut)
 
     out.on('error', reject)
     zipfile.outputStream.on('error', reject)
-    out.on('close', () => resolve({
-      outPath: path.resolve(outPath),
-      uuid,
-      chapterCount: chapters.length
-    }))
+    out.on('close', () => {
+      let bytes = 0
+      try { bytes = fs.statSync(absOut).size } catch (_) {}
+      resolve({
+        outPath: absOut,
+        uuid,
+        chapterCount: chapters.length,
+        bytes
+      })
+    })
 
     zipfile.outputStream.pipe(out)
 
     // EPUB requires mimetype first and uncompressed
     zipfile.addBuffer(Buffer.from('application/epub+zip'), 'mimetype', { compress: false })
-    for (const e of entries) {
+
+    for (const e of shellEntries) {
       const buf = Buffer.isBuffer(e.data) ? e.data : Buffer.from(e.data, 'utf8')
       zipfile.addBuffer(buf, e.name)
+      step++
+      if (onProgress) onProgress(step, totalSteps, 'pack-meta')
     }
+
+    for (let i = 0; i < chapters.length; i++) {
+      const ch = chapters[i]
+      const xhtml = xhtmlChapter(ch, '../styles/main.css')
+      zipfile.addBuffer(Buffer.from(xhtml, 'utf8'), 'OEBPS/text/' + ch.id + '.xhtml')
+      if (freeChapterBodies) {
+        ch.paragraphs = null
+      }
+      step++
+      if (onProgress) onProgress(step, totalSteps, 'pack-chapters')
+    }
+
     zipfile.end()
   })
 }
