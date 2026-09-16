@@ -3,43 +3,28 @@
 
 const fs = require('fs')
 const path = require('path')
+const { Command } = require('commander')
 const { rmFiles } = require('./lib/fs-utils')
-const { ensureDir } = require('./lib/cli-utils')
+const { ensureDir, readUtf8 } = require('./lib/cli-utils')
+const { loadRules } = require('./lib/chapter-rules')
+const { preformatText } = require('./lib/text-pipeline')
 
+const program = new Command()
+program
+  .name('mergetxt')
+  .version('1.3.1')
+  .description('Merge ./pm/<n>/*.txt with shared preformat rules')
+  .option('-r, --rules <file>', 'chapter rules JSON (same as epubbuild)')
+  .option('--pm <dir>', 'source directory', 'pm')
+  .option('-o, --output <file>', 'output file', 'pms.txt')
+  .showHelpAfterError()
+  .parse(process.argv)
+
+const opts = program.opts()
+const rules = loadRules(opts.rules || null)
 const SPLITE_DIR = path.join(process.cwd(), 'spliteFile')
-const pmDir = path.join(process.cwd(), 'pm')
-const outFile = path.join(process.cwd(), 'pms.txt')
-
-const preProccessFnc = (str) => {
-  const newArr = []
-  const arr = str.split('\n')
-  arr.forEach((line) => {
-    let val = line.trim()
-    if (val === '') return
-
-    const volpatt = /^第[零一二三四五六七八九十百千]{1,7}[集卷]/
-    const volpatt1 = /^第\d{1,4}[集卷]/
-    const volpatt2 = /^[上下]半篇{1,12}(.*)$/
-    const volresult = volpatt1.test(val) || volpatt.test(val) || volpatt2.test(val)
-
-    const pattb = /^章(.{1,5})$/
-    const pattc = /^第\d{1,4}[章節]/
-    const patt = /^第[零一二兩三四五六七八九十百千]{1,7}[章節]/
-    const result = pattc.test(val) || pattb.test(val) || patt.test(val) ||
-      /^引子/.test(val) || /^序章/.test(val) || /^序幕/.test(val) ||
-      val.includes('內容簡介') || /^尾聲/.test(val) || /^完本感言/.test(val)
-
-    if (result) {
-      console.log(val)
-      val = '\n' + val
-    } else if (volresult) {
-      console.log(val)
-      val = '\n' + val
-    }
-    newArr.push(val)
-  })
-  return newArr.join('\n')
-}
+const pmDir = path.resolve(process.cwd(), opts.pm)
+const outFile = path.resolve(process.cwd(), opts.output)
 
 ensureDir(SPLITE_DIR)
 rmFiles(SPLITE_DIR, (name) => name.endsWith('.xhtml'))
@@ -67,9 +52,10 @@ subdirs.forEach((subdir) => {
   txtfiles.forEach((txtfile) => {
     const full = path.join(sub, txtfile)
     console.log(full)
-    const data = fs.readFileSync(full, 'utf8')
-    fs.appendFileSync(outFile, preProccessFnc(data))
+    const data = readUtf8(full)
+    fs.appendFileSync(outFile, preformatText(data, rules) + '\n')
   })
 })
 
 console.log('wrote', outFile)
+console.log('rules', rules.source)

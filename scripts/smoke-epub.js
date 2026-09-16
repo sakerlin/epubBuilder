@@ -82,13 +82,8 @@ if (!joined.includes('第二十一章') || !joined.includes('引子')) {
   process.exit(1)
 }
 // TOC cleanup expectations
-const expect = {
-  '再見篇·簡介': true,
-  '第一章 紈褲': true,
-  '第二十一章': true,
-  '第六篇': true
-}
-for (const t of Object.keys(expect)) {
+const expectTitles = ['再見篇·簡介', '第一章 紈褲', '第二十一章', '第六篇']
+for (const t of expectTitles) {
   if (!titles.includes(t)) {
     console.error('expected cleaned title missing:', t, '\ngot:\n' + joined)
     process.exit(1)
